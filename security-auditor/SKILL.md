@@ -26,6 +26,8 @@ allowed-tools: Bash Read Write Edit WebFetch WebSearch
 Analyze a codebase for security issues, generate a detailed report, and
 optionally remediate findings.
 
+Read `references/ARCHITECTURE.md` to understand how this skill works
+
 ## Input Parameters
 
 ### Required
@@ -92,11 +94,12 @@ bash scripts/security_scan.sh "$REPOSITORY_PATH" --secrets-only
 python3 scripts/entropy_detector.py "$REPOSITORY_PATH" --format json
 ```
 
-Read `references/DETAILED_SPEC.md` for the full set of detection patterns
+Read `references/DETAILED_SPEC.md` and `references/QUICKREF.md` for the full set of detection patterns
 (AWS keys, Google API keys, GitHub tokens, Slack tokens, private keys, JWT
 tokens, database credentials, generic secret patterns).
 
 Assign confidence levels:
+
 - **High**: Pattern match + high entropy + sensitive context keyword
 - **Medium**: Pattern match OR high entropy with context
 - **Low**: High entropy only
@@ -156,6 +159,7 @@ Grade: A (90-100), B (80-89), C (70-79), D (60-69), F (<60)
 ### Step 6: Map to Security Standards
 
 Map each finding to applicable standards:
+
 - OWASP Top 10 (2021): A01 through A10
 - CWE Top 25 Most Dangerous Software Weaknesses
 - SANS Top 25 Most Dangerous Programming Errors
@@ -166,6 +170,7 @@ Report compliance status (Pass/Fail) for each standard.
 
 Produce the report in Markdown using the template in
 `references/OUTPUT_FORMAT.md`. The report must include:
+
 - Executive summary with security score and grade
 - Risk matrix with severity counts and estimated remediation time
 - Security standards compliance table
@@ -178,6 +183,7 @@ Produce the report in Markdown using the template in
 ### Step 8: Optional Remediation
 
 When `remediate` is true:
+
 1. Fix auto-fixable issues (dependency updates, permission corrections,
    gitignore additions, Dockerfile improvements).
 2. Create descriptive commit messages for each fix.
