@@ -134,9 +134,14 @@
        │
        ▼
 ┌──────────────────────────────────────────┐
-│  Step 5: Scoring & Compliance            │
+│  Step 5: Calculate Security Score        │
 │  • Calculate security score (0-100)      │
 │  • Assign letter grade (A-F)             │
+└──────┬───────────────────────────────────┘
+       │
+       ▼
+┌──────────────────────────────────────────┐
+│  Step 6: Map to Security Standards       │
 │  • Map to OWASP Top 10                   │
 │  • Map to CWE Top 25                     │
 │  • Map to SANS Top 25                    │
@@ -144,7 +149,7 @@
        │
        ▼
 ┌──────────────────────────────────────────┐
-│  Step 6: Report Generation               │
+│  Step 7: Report Generation               │
 │  • Executive summary                     │
 │  • Risk matrix                           │
 │  • Detailed findings tables              │
@@ -154,7 +159,7 @@
        │
        ▼
 ┌──────────────────────────────────────────┐
-│  Step 7: Output                          │
+│  Step 8: Output                          │
 │                                          │
 │  ┌────────────┐    ┌─────────────────┐  │
 │  │ Markdown   │    │ Optional Auto   │  │
@@ -316,10 +321,7 @@ security-auditor/              # agentskills-format skill
 │  ├─ DETAILED_SPEC.md         # Full detection commands reference
 │  ├─ OUTPUT_FORMAT.md         # Report template
 │  ├─ ARCHITECTURE.md          # This file
-│  ├─ QUICKREF.md              # Quick reference guide
-│  └─ USAGE_GUIDE.md           # Complete usage guide
-│
-└─ assets/                     # Static resources
+│  └─ QUICKREF.md              # Quick reference guide
 ```
 
 ## Extension Points

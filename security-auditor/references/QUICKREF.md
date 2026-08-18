@@ -10,7 +10,7 @@ Quick reference for running security scans manually using the commands from the 
 # Pattern-based secret search
 grep -rInE "(password|passwd|pwd|secret|token|api_key|apikey|api-key|access_key|secret_key|private_key|client_secret|auth_token|bearer)\s*[:=]\s*['\"]?[a-zA-Z0-9/+=\-_]{8,}" . \
   --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} \
-  --exclude="*.{min.js,map,lock,log}" 2>/dev/null
+  --exclude="*.min.js" --exclude="*.map" --exclude="*.lock" --exclude="*.log" 2>/dev/null
 
 # AWS Keys
 grep -rInE "AKIA[0-9A-Z]{16}" . --exclude-dir={.git,node_modules,vendor,venv} 2>/dev/null
@@ -52,9 +52,9 @@ grep -rn "^FROM.*:latest" . --include="Dockerfile*" 2>/dev/null  # Latest tag us
 grep -rn "^USER root" . --include="Dockerfile*" 2>/dev/null      # Root user
 
 # No USER directive (runs as root)
-for f in $(find . -name "Dockerfile*" 2>/dev/null); do
+while IFS= read -r -d '' f; do
   grep -q "^USER " "$f" || echo "$f: No USER directive"
-done
+done < <(find . -name "Dockerfile*" -print0 2>/dev/null)
 
 # Hardcoded secrets in Dockerfiles
 grep -rInE "(ENV|ARG).*(PASSWORD|SECRET|KEY|TOKEN)\s*=" . --include="Dockerfile*" 2>/dev/null
@@ -174,10 +174,11 @@ Save as `quick_security_scan.sh`, make executable with `chmod +x quick_security_
 ## 📊 Interpreting Results
 
 ### Secret Detection
-- **Pattern Match**: High confidence - investigate immediately
-- **High Entropy (>5.5)**: Very likely a secret
-- **Medium Entropy (4.5-5.5)**: Review context carefully
-- **Low Entropy (<4.5)**: Likely false positive
+- **Pattern Match**: High confidence — investigate immediately
+- **High Confidence** (entropy >= 5.5, or >= 5.0 with secret keyword in context): Very likely a secret
+- **Medium Confidence** (entropy >= 5.0, or lower with secret keyword): Review context carefully
+- **Low Confidence** (entropy >= 4.5 but no contextual indicators): Possible false positive
+- Strings with entropy < 4.5 are filtered out entirely and do not appear in results
 
 ### File Permissions
 - **Sensitive files (keys, certs)**: Should be 600 (owner read/write only)
@@ -225,6 +226,6 @@ security_scan:
 ## 🤝 Getting Help
 
 For issues or questions:
-1. Check the Security Auditor Agent documentation in `security-auditor.md`
-2. Review the tools README in `tools/README.md`
+1. Check the Security Auditor Agent documentation in `SKILL.md`
+2. Review the scripts README in `scripts/README.md`
 3. Run with `--help` flag for command-line tools

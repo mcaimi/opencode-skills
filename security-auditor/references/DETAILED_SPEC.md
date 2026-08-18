@@ -10,7 +10,7 @@ Complete reference of all detection commands used by the security auditor.
 # Generic secret patterns
 grep -rInE "(password|passwd|pwd|secret|token|api_key|apikey|api-key|access_key|secret_key|private_key|client_secret|auth_token|bearer)\s*[:=]\s*['\"]?[a-zA-Z0-9/+=\-_]{8,}" . \
   --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} \
-  --exclude="*.{min.js,map,lock,log}" 2>/dev/null
+  --exclude="*.min.js" --exclude="*.map" --exclude="*.lock" --exclude="*.log" 2>/dev/null
 
 # AWS Access Key pattern
 grep -rInE "AKIA[0-9A-Z]{16}" . \
@@ -31,7 +31,8 @@ grep -rInE "xox[baprs]-[0-9a-zA-Z\-]{10,}" . \
 # Generic high-entropy base64 strings
 grep -rInE "['\"][a-zA-Z0-9+/=]{40,}['\"]" . \
   --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} \
-  --exclude="*.{min.js,map,lock,log,svg,jpg,png}" 2>/dev/null
+  --exclude="*.min.js" --exclude="*.map" --exclude="*.lock" --exclude="*.log" \
+  --exclude="*.svg" --exclude="*.jpg" --exclude="*.png" 2>/dev/null
 
 # Private key detection
 grep -rInE "BEGIN (RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY" . \
@@ -148,11 +149,11 @@ find . -type f \( -name "Dockerfile" -o -name "Dockerfile.*" -o -name "*.dockerf
 grep -rn "^USER root" . --include="Dockerfile*" 2>/dev/null
 
 # Missing USER directive (defaults to root)
-for dockerfile in $(find . -type f -name "Dockerfile*" 2>/dev/null); do
+while IFS= read -r -d '' dockerfile; do
   if ! grep -q "^USER " "$dockerfile"; then
     echo "$dockerfile: No USER directive (runs as root)"
   fi
-done
+done < <(find . -type f -name "Dockerfile*" -print0 2>/dev/null)
 
 # Hardcoded secrets in Dockerfiles
 grep -rInE "(ENV|ARG).*(PASSWORD|SECRET|KEY|TOKEN)\s*=" . --include="Dockerfile*" 2>/dev/null
@@ -167,11 +168,11 @@ grep -rn "^FROM [^:@]*$" . --include="Dockerfile*" 2>/dev/null
 grep -rn "^ADD " . --include="Dockerfile*" 2>/dev/null
 
 # Missing HEALTHCHECK
-for dockerfile in $(find . -type f -name "Dockerfile*" 2>/dev/null); do
+while IFS= read -r -d '' dockerfile; do
   if ! grep -q "^HEALTHCHECK" "$dockerfile"; then
     echo "$dockerfile: No HEALTHCHECK directive"
   fi
-done
+done < <(find . -type f -name "Dockerfile*" -print0 2>/dev/null)
 
 # apt-get without --no-install-recommends
 grep -rn "apt-get install" . --include="Dockerfile*" \

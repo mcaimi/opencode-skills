@@ -122,6 +122,17 @@ scan_secrets() {
         print_ok "No GitHub Tokens detected"
     fi
 
+    # Slack Tokens
+    echo "Scanning for Slack Tokens..."
+    slack_tokens=$(grep -rInE "xox[baprs]-[0-9a-zA-Z\-]{10,}" . \
+        --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} 2>/dev/null || true)
+    if [ -n "$slack_tokens" ]; then
+        print_critical "Slack Tokens detected:"
+        echo "$slack_tokens" | head -10
+    else
+        print_ok "No Slack Tokens detected"
+    fi
+
     # Private Keys
     echo "Scanning for Private Keys..."
     private_keys=$(grep -rInE "BEGIN (RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY" . \
@@ -157,7 +168,7 @@ scan_secrets() {
 
     # Generic high-entropy strings
     echo "Scanning for generic secrets..."
-    generic_secrets=$(grep -rInE "(password|passwd|secret|token|api_key|apikey)\s*[:=]\s*['\"]?[a-zA-Z0-9/+=\-_]{12,}" . \
+    generic_secrets=$(grep -rInE "(password|passwd|pwd|secret|token|api_key|apikey|api-key|access_key|secret_key|private_key|client_secret|auth_token|bearer)\s*[:=]\s*['\"]?[a-zA-Z0-9/+=\-_]{12,}" . \
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} \
         --exclude="*.min.js" --exclude="*.map" --exclude="*.lock" --exclude="*.log" 2>/dev/null | head -10 || true)
     if [ -n "$generic_secrets" ]; then
