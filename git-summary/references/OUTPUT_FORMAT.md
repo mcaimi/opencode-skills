@@ -52,6 +52,56 @@ Output templates and schemas for the git-summary skill.
 |-----------|---------|---------------|
 | ...       | ...     | ...           |
 
+## Code Churn Hotspots
+
+| File Path | Additions | Deletions | Churn (Add+Del) |
+|-----------|-----------|-----------|-----------------|
+| ...       | ...       | ...       | ...             |
+
+> High-churn files are frequently rewritten and may indicate instability or active development.
+
+## File Lifecycle
+
+### Files Added
+| File Path | Date Added | Author |
+|-----------|------------|--------|
+| ...       | ...        | ...    |
+
+### Files Deleted
+| File Path | Date Deleted | Author |
+|-----------|--------------|--------|
+| ...       | ...          | ...    |
+
+### Files Renamed
+| Old Path | New Path | Date | Author |
+|----------|----------|------|--------|
+| ...      | ...      | ...  | ...    |
+
+## Tag / Release History
+
+| Tag | Date | Commits Since Previous |
+|-----|------|------------------------|
+| ... | ...  | ...                    |
+
+## Code Ownership
+
+| File Path | Primary Author | Other Contributors |
+|-----------|----------------|--------------------|
+| ...       | ...            | ...                |
+
+## Commit Conventions
+
+### Prefix Distribution
+| Prefix | Count | Percentage |
+|--------|-------|------------|
+| feat   | ...   | ...        |
+| fix    | ...   | ...        |
+| ...    | ...   | ...        |
+
+### Issue References
+- **Total commits referencing issues:** {count}
+- **Trackers detected:** {tracker_names}
+
 ## Development Patterns
 
 - **Peak Activity Day:** {day_of_week}
@@ -128,6 +178,65 @@ When the user requests JSON output, use this structure:
       "total_changes": "number"
     }
   ],
+  "code_churn": [
+    {
+      "path": "string",
+      "additions": "number",
+      "deletions": "number",
+      "churn": "number"
+    }
+  ],
+  "file_lifecycle": {
+    "added": [
+      {
+        "path": "string",
+        "date": "ISO-8601-timestamp",
+        "author": "string"
+      }
+    ],
+    "deleted": [
+      {
+        "path": "string",
+        "date": "ISO-8601-timestamp",
+        "author": "string"
+      }
+    ],
+    "renamed": [
+      {
+        "old_path": "string",
+        "new_path": "string",
+        "date": "ISO-8601-timestamp",
+        "author": "string"
+      }
+    ]
+  },
+  "tags": [
+    {
+      "name": "string",
+      "date": "ISO-8601-timestamp",
+      "commits_since_previous": "number|null"
+    }
+  ],
+  "code_ownership": [
+    {
+      "path": "string",
+      "primary_author": "string",
+      "contributors": ["string"]
+    }
+  ],
+  "commit_conventions": {
+    "prefixes": [
+      {
+        "prefix": "string",
+        "count": "number",
+        "percentage": "number"
+      }
+    ],
+    "issue_references": {
+      "total": "number",
+      "trackers": ["string"]
+    }
+  },
   "patterns": {
     "peak_activity_day": "string",
     "peak_activity_hour": "number",

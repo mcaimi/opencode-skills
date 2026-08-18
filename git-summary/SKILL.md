@@ -62,6 +62,9 @@ Compute:
 - Total files modified, lines added, lines deleted
 - Per-author commit counts and line changes
 - Per-file modification frequency
+- File lifecycle counts (files added, deleted, renamed in the analysis period)
+- Code churn hotspots (files with highest total additions + deletions)
+- Tag/release count and commits between releases (if tags exist)
 
 ### 5. Detect patterns
 
@@ -69,6 +72,9 @@ Compute:
 - **Peak activity hour** — hour (0-23) with the most commits
 - **Average commit size** — mean lines changed per commit
 - **Merge commit count** — commits with more than one parent
+- **Commit message conventions** — conventional commit prefix distribution (feat, fix, chore, etc.) if present
+- **Issue references** — commits that reference issue trackers (#123, JIRA-456, etc.)
+- **Code ownership** — per-file author distribution (who works on what)
 
 ### 6. Generate report
 
@@ -79,7 +85,12 @@ Produce a markdown report with these sections in order:
 3. **Top Contributors** — table of authors ranked by commit count with line stats
 4. **Commit Timeline** — commits grouped by date, each showing hash, message, author, date, files changed, and change counts
 5. **Most Modified Files** — table of files ranked by number of commits touching them
-6. **Development Patterns** — peak day, peak hour, average commit size, merge count
+6. **Code Churn Hotspots** — files ranked by total churn (additions + deletions), flagging potential instability
+7. **File Lifecycle** — files added, deleted, and renamed during the analysis period
+8. **Tag / Release History** — releases with dates and commit counts between them (if tags exist)
+9. **Code Ownership** — top authors per most-modified file
+10. **Commit Conventions** — distribution of conventional commit prefixes and issue tracker references
+11. **Development Patterns** — peak day, peak hour, average commit size, merge count
 
 See [the output format guide](references/OUTPUT_FORMAT.md) for the full markdown template and JSON schema, and [the reference guide](references/REFERENCE.md) for git commands used.
 
