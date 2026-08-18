@@ -6,7 +6,7 @@
 # Usage: ./security_scan.sh [directory] [--quick|--full|--secrets-only|--config-only|--docker-only]
 #
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -43,31 +43,37 @@ print_section() {
 
 print_critical() {
     echo -e "${RED}[CRITICAL] $1${NC}"
-    ((CRITICAL_ISSUES++))
-    ((TOTAL_ISSUES++))
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
 }
 
 print_high() {
     echo -e "${RED}[HIGH] $1${NC}"
-    ((HIGH_ISSUES++))
-    ((TOTAL_ISSUES++))
+    HIGH_ISSUES=$((HIGH_ISSUES + 1))
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
 }
 
 print_medium() {
     echo -e "${YELLOW}[MEDIUM] $1${NC}"
-    ((MEDIUM_ISSUES++))
-    ((TOTAL_ISSUES++))
+    MEDIUM_ISSUES=$((MEDIUM_ISSUES + 1))
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
 }
 
 print_low() {
     echo -e "[LOW] $1"
-    ((LOW_ISSUES++))
-    ((TOTAL_ISSUES++))
+    LOW_ISSUES=$((LOW_ISSUES + 1))
+    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
 }
 
 print_ok() {
     echo -e "${GREEN}✓ $1${NC}"
 }
+
+# Handle help before anything else
+if [ "$SCAN_MODE" = "-h" ] || [ "$SCAN_MODE" = "--help" ]; then
+    echo "Usage: $0 [directory] [--quick|--full|--secrets-only|--config-only|--docker-only]"
+    exit 0
+fi
 
 # Change to scan directory
 cd "$SCAN_DIR" || exit 1
@@ -87,8 +93,9 @@ scan_secrets() {
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} 2>/dev/null || true)
     if [ -n "$aws_keys" ]; then
         print_critical "AWS Access Keys detected:"
-        echo "$aws_keys" | head -5
-        [ $(echo "$aws_keys" | wc -l) -gt 5 ] && echo "... and $(($(echo "$aws_keys" | wc -l) - 5)) more"
+        echo "$aws_keys" | head -10
+        aws_key_count=$(echo "$aws_keys" | wc -l | tr -d ' ')
+        [ "$aws_key_count" -gt 10 ] && echo "... and $((aws_key_count - 10)) more"
     else
         print_ok "No AWS Access Keys detected"
     fi
@@ -99,7 +106,7 @@ scan_secrets() {
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} 2>/dev/null || true)
     if [ -n "$google_keys" ]; then
         print_critical "Google API Keys detected:"
-        echo "$google_keys"
+        echo "$google_keys" | head -10
     else
         print_ok "No Google API Keys detected"
     fi
@@ -110,7 +117,7 @@ scan_secrets() {
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} 2>/dev/null || true)
     if [ -n "$github_tokens" ]; then
         print_critical "GitHub Tokens detected:"
-        echo "$github_tokens"
+        echo "$github_tokens" | head -10
     else
         print_ok "No GitHub Tokens detected"
     fi
@@ -121,7 +128,7 @@ scan_secrets() {
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} 2>/dev/null || true)
     if [ -n "$private_keys" ]; then
         print_critical "Private Keys detected:"
-        echo "$private_keys"
+        echo "$private_keys" | head -10
     else
         print_ok "No Private Keys detected"
     fi
@@ -132,7 +139,7 @@ scan_secrets() {
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} 2>/dev/null || true)
     if [ -n "$jwt_tokens" ]; then
         print_high "JWT Tokens detected:"
-        echo "$jwt_tokens" | head -3
+        echo "$jwt_tokens" | head -10
     else
         print_ok "No JWT Tokens detected"
     fi
@@ -143,7 +150,7 @@ scan_secrets() {
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} 2>/dev/null || true)
     if [ -n "$db_strings" ]; then
         print_high "Database Connection Strings with credentials detected:"
-        echo "$db_strings"
+        echo "$db_strings" | head -10
     else
         print_ok "No Database Connection Strings with credentials detected"
     fi
@@ -152,7 +159,7 @@ scan_secrets() {
     echo "Scanning for generic secrets..."
     generic_secrets=$(grep -rInE "(password|passwd|secret|token|api_key|apikey)\s*[:=]\s*['\"]?[a-zA-Z0-9/+=\-_]{12,}" . \
         --exclude-dir={.git,node_modules,vendor,venv,.venv,build,dist,target} \
-        --exclude="*.{min.js,map,lock,log}" 2>/dev/null | head -10 || true)
+        --exclude="*.min.js" --exclude="*.map" --exclude="*.lock" --exclude="*.log" 2>/dev/null | head -10 || true)
     if [ -n "$generic_secrets" ]; then
         print_high "Generic secret patterns detected:"
         echo "$generic_secrets"
@@ -181,7 +188,7 @@ scan_secrets() {
 
             if [ "$entropy_count" -gt 0 ]; then
                 print_high "High-entropy strings detected: $entropy_count potential secrets"
-                echo "Run 'python3 tools/entropy_detector.py' for details"
+                echo "Run 'python3 $script_dir/entropy_detector.py' for details"
             else
                 print_ok "No high-entropy strings detected"
             fi
@@ -241,14 +248,17 @@ scan_config() {
 scan_docker() {
     print_section "Container Security (Docker)"
 
-    dockerfiles=$(find . -type f \( -name "Dockerfile" -o -name "Dockerfile.*" \) 2>/dev/null || true)
+    local -a dockerfiles=()
+    while IFS= read -r -d '' f; do
+        dockerfiles+=("$f")
+    done < <(find . -type f \( -name "Dockerfile" -o -name "Dockerfile.*" \) -print0 2>/dev/null)
 
-    if [ -z "$dockerfiles" ]; then
+    if [ ${#dockerfiles[@]} -eq 0 ]; then
         echo "No Dockerfiles found"
         return
     fi
 
-    echo "Found $(echo "$dockerfiles" | wc -l) Dockerfile(s)"
+    echo "Found ${#dockerfiles[@]} Dockerfile(s)"
 
     # Latest tag usage
     echo "Checking for :latest tag usage..."
@@ -262,7 +272,7 @@ scan_docker() {
 
     # Running as root
     echo "Checking for root user..."
-    for dockerfile in $dockerfiles; do
+    for dockerfile in "${dockerfiles[@]}"; do
         if ! grep -q "^USER " "$dockerfile"; then
             print_high "No USER directive in $dockerfile (will run as root)"
         fi
@@ -280,7 +290,7 @@ scan_docker() {
 
     # Missing HEALTHCHECK
     echo "Checking for HEALTHCHECK directives..."
-    for dockerfile in $dockerfiles; do
+    for dockerfile in "${dockerfiles[@]}"; do
         if ! grep -q "^HEALTHCHECK" "$dockerfile"; then
             print_low "No HEALTHCHECK in $dockerfile"
         fi

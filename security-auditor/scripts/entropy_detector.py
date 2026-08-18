@@ -73,36 +73,29 @@ def calculate_entropy(string: str) -> float:
     return entropy
 
 
-def is_likely_false_positive(string: str, context: str = '') -> bool:
+def is_likely_false_positive(string: str, file_path: str = '') -> bool:
     """
     Check if a high-entropy string is likely a false positive.
-
-    Args:
-        string: The string to check
-        context: Surrounding context/line
-
-    Returns:
-        True if likely a false positive, False otherwise
     """
-    # Common false positives
     false_positive_patterns = [
         r'^[0-9a-f]{40}$',  # Git commit hashes
         r'^[A-Z_]+$',       # All caps constants
         r'^https?://',      # URLs
         r'^\d+\.\d+\.\d+',  # Version numbers
         r'^[A-F0-9]{32}$',  # MD5 hashes
-        r'^[A-Za-z0-9+/]{40,}={0,2}$',  # Base64 but check if it's data/test fixture
+        r'^[A-Za-z0-9+/]{40,}={0,2}$',  # Base64 data/test fixture
     ]
 
     for pattern in false_positive_patterns:
         if re.match(pattern, string):
             return True
 
-    # Check if it's in a test file
-    if 'test' in context.lower() or 'mock' in context.lower() or 'fixture' in context.lower():
-        return True
+    fp_path_segments = {'test', 'tests', 'mock', 'mocks', 'fixture', 'fixtures', '__tests__', '__mocks__'}
+    if file_path:
+        path_parts = set(Path(file_path).parts)
+        if path_parts & fp_path_segments:
+            return True
 
-    # Very long strings (>200 chars) might be serialized data
     if len(string) > 200:
         return True
 
@@ -161,7 +154,7 @@ def find_high_entropy_strings(
                             continue
 
                         # Skip likely false positives
-                        if is_likely_false_positive(string, line):
+                        if is_likely_false_positive(string, str(file_path)):
                             continue
 
                         # Determine confidence based on entropy and context
@@ -260,7 +253,8 @@ def format_output(results: List[Dict], format_type: str = 'text') -> str:
     elif format_type == 'csv':
         lines = ['File,Line,Entropy,Length,Confidence,String']
         for r in results:
-            lines.append(f"{r['file']},{r['line']},{r['entropy']},{r['length']},{r['confidence']},\"{r['string']}\"")
+            escaped = r['string'].replace('"', '""')
+            lines.append(f"{r['file']},{r['line']},{r['entropy']},{r['length']},{r['confidence']},\"{escaped}\"")
         return '\n'.join(lines)
 
     else:  # text format
