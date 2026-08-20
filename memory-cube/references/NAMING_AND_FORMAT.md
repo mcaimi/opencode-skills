@@ -65,6 +65,83 @@ When appending to an existing file, do not duplicate the frontmatter — it is
 written only once at file creation. When overwriting, regenerate the frontmatter
 to match the new content.
 
+## Personality Bank Files
+
+Personality files follow the same `CATEGORY-SUBTOPIC.md` uppercase naming
+convention but use categories specific to agent behavior and interaction
+preferences.
+
+### Personality Categories
+
+| Category         | Purpose                                          | Example Filename                          |
+|------------------|--------------------------------------------------|-------------------------------------------|
+| `TONE`           | Communication style: formal, casual, terse, etc. | `TONE-FORMAL_CONCISE.md`                  |
+| `MOOD`           | Agent demeanor: friendly, professional, humorous  | `MOOD-FRIENDLY_PROFESSIONAL.md`           |
+| `SPECIALIZATION` | Domain focus or persona the agent should assume   | `SPECIALIZATION-KUBERNETES_EXPERT.md`     |
+| `RULES`          | Behavioral rules and workflow constraints          | `RULES-ALWAYS_RUN_TESTS.md`              |
+| `SKILLS`         | Skill routing preferences and bindings             | `SKILLS-SECURITY_ROUTING.md`             |
+| `PREFERENCES`    | Miscellaneous interaction preferences              | `PREFERENCES-NO_EMOJIS.md`              |
+
+### Personality Metadata Header
+
+Personality files use the same frontmatter structure as memory files, but with
+categories from the table above and a `type` field that classifies the entry:
+
+```yaml
+---
+topic: "Formal and Concise Tone"
+category: "Tone"
+type: "tone"
+summary: "Prefer formal language with concise responses, no filler"
+saved_from: "conversation"
+---
+```
+
+| Field        | Required | Description                                                      |
+|--------------|----------|------------------------------------------------------------------|
+| `topic`      | yes      | Human-readable description of the preference                    |
+| `category`   | yes      | One of: Tone, Mood, Specialization, Rules, Skills, Preferences   |
+| `type`       | yes      | Lowercase slug: `tone`, `mood`, `specialization`, `rule`, `skill-routing`, `preference` |
+| `summary`    | yes      | One-line description of what this entry controls                 |
+| `saved_from` | yes      | Origin: `"conversation"`, `"file"`, or `"manual"`               |
+| `tags`       | no       | Keyword tags for cross-referencing                               |
+| `related`    | no       | Related personality or memory filenames                          |
+
+### Personality Content Structure
+
+Personality files should be short and actionable. Structure them as:
+
+1. **Frontmatter** — As above.
+2. **Title** — H1 heading describing the preference or rule.
+3. **Rule statement** — A clear, imperative sentence stating what the agent
+   should do.
+4. **Context** (optional) — Why the user wants this, so the agent can apply
+   the rule sensibly in edge cases.
+5. **Examples** (optional) — Concrete before/after examples showing the
+   preference in action.
+
+Example file:
+
+```markdown
+---
+topic: "Formal and Concise Tone"
+category: "Tone"
+type: "tone"
+summary: "Prefer formal language with concise responses, no filler"
+saved_from: "conversation"
+---
+
+# Formal and Concise Tone
+
+Use formal language. Keep responses concise — no filler phrases, no
+unnecessary qualifiers. Prefer short sentences and direct statements.
+
+## Examples
+
+- Instead of: "Sure! I'd be happy to help you with that. Let me take a look..."
+- Use: "Examining the file now."
+```
+
 ## Content Formatting Guidelines
 
 When synthesizing conversation content into a memory file, follow these rules:

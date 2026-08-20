@@ -34,6 +34,24 @@
   Include a leading newline or heading in the appended content to keep the
   document readable.
 
+## Personality Bank Gotchas
+
+- Personality entries should be short and imperative. Avoid storing long
+  explanations — the agent needs a clear rule, not an essay.
+- When multiple personality files conflict, the agent should ask the user to
+  resolve the conflict rather than silently picking one.
+- Deleting a personality file reverts that aspect of behavior to defaults.
+  There is no "undo" — if the user wants the preference back, it must be
+  re-created.
+- Personality recall should happen silently. Do not list loaded preferences
+  unless the user explicitly asks "what personality settings are active?"
+- Do not store preferences that embed secrets or credentials (e.g., "always
+  use API key X when calling service Y"). These belong in environment
+  variables, not personality files.
+- Behavioral rules that reference specific skills (e.g., "use security-auditor
+  for vulnerability questions") should use the skill's exact name as it
+  appears in the available skills list.
+
 ## Security
 
 - Do not save credentials, tokens, passwords, or other secrets into memory
