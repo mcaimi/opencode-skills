@@ -21,6 +21,10 @@
 # # output as JSON instead of a table
 # $ memory-content.py --format json
 # ```
+# ```bash
+# # limit output to 5 entries; compact file+topic columns
+# $ memory-content.py --limit 5 --summary-only
+# ```
 
 import argparse
 import json
@@ -135,47 +139,42 @@ def scan_bank(bank_path: Path, search: str | None = None) -> list[dict]:
     return results
 
 
-def format_table(entries: list[dict]) -> str:
+def format_table(entries: list[dict], summary_only: bool = False) -> str:
     if not entries:
         return "No memories found."
 
-    h_file = "File"
-    h_topic = "Topic"
-    h_category = "Category"
-    h_summary = "Summary"
+    if summary_only:
+        cols = [("file", "File"), ("topic", "Topic")]
+    else:
+        cols = [
+            ("file", "File"),
+            ("topic", "Topic"),
+            ("category", "Category"),
+            ("summary", "Summary"),
+        ]
 
-    w_file = max(len(h_file), *(len(e["file"]) for e in entries))
-    w_topic = max(len(h_topic), *(len(e["topic"]) for e in entries))
-    w_cat = max(len(h_category), *(len(e["category"]) for e in entries))
-    w_sum = max(len(h_summary), *(len(e["summary"]) for e in entries))
+    widths = {
+        key: max(len(label), *(len(str(e[key])) for e in entries))
+        for key, label in cols
+    }
 
-    header = (
-        f"| {h_file:<{w_file}} "
-        f"| {h_topic:<{w_topic}} "
-        f"| {h_category:<{w_cat}} "
-        f"| {h_summary:<{w_sum}} |"
-    )
-    sep = (
-        f"| {'-' * w_file} "
-        f"| {'-' * w_topic} "
-        f"| {'-' * w_cat} "
-        f"| {'-' * w_sum} |"
-    )
+    header = " ".join(f"| {label:<{widths[key]}}" for key, label in cols).strip() + " |"
+    sep = " ".join(f"| {'-' * widths[key]}" for key, _ in cols).strip() + " |"
 
-    rows = []
-    for e in entries:
-        row = (
-            f"| {e['file']:<{w_file}} "
-            f"| {e['topic']:<{w_topic}} "
-            f"| {e['category']:<{w_cat}} "
-            f"| {e['summary']:<{w_sum}} |"
-        )
-        rows.append(row)
+    rows = [
+        " ".join(f"| {str(e[key]):<{widths[key]}}" for key, _ in cols).strip() + " |"
+        for e in entries
+    ]
 
     return "\n".join([header, sep, *rows])
 
 
-def format_json(entries: list[dict]) -> str:
+def format_json(entries: list[dict], summary_only: bool = False) -> str:
+    if summary_only:
+        entries = [
+            {"file": e["file"], "topic": e["topic"], "summary": e["summary"]}
+            for e in entries
+        ]
     return json.dumps(entries, indent=2)
 
 
@@ -201,6 +200,17 @@ def build_parser() -> argparse.ArgumentParser:
         dest="output_format",
         help="Output format (default: table)",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Maximum number of entries to display (default: 10, use 0 for no limit)",
+    )
+    parser.add_argument(
+        "--summary-only",
+        action="store_true",
+        help="Show only file and topic columns (compact output)",
+    )
     return parser
 
 
@@ -216,10 +226,22 @@ def main() -> None:
 
     entries = scan_bank(bank_path, search=args.search)
 
-    if args.output_format == "json":
-        print(format_json(entries))
+    if args.limit > 0:
+        truncated = len(entries) > args.limit
+        entries = entries[: args.limit]
     else:
-        print(format_table(entries))
+        truncated = False
+
+    if args.output_format == "json":
+        print(format_json(entries, summary_only=args.summary_only))
+    else:
+        print(format_table(entries, summary_only=args.summary_only))
+
+    if truncated:
+        print(
+            f"(showing first {args.limit} entries, use --limit to adjust)",
+            file=sys.stderr,
+        )
 
 
 if __name__ == "__main__":
