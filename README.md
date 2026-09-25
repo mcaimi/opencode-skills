@@ -57,6 +57,59 @@ git-summary/
     └── REFERENCE.md
 ```
 
+### Memory Cube
+
+A persistent, topic-organized memory store that saves conversation knowledge as Markdown files and manages a personality bank for agent tone and behavior preferences.
+
+**Capabilities:**
+- **Topic-Based Storage** — Semantically-named Markdown files with YAML frontmatter (topic, category, summary)
+- **Dual Memory Banks** — `memory` for factual knowledge and `personality` for agent behavior preferences
+- **Search & Recall** — Keyword search across topics, categories, summaries, and tags
+- **Smart Updates** — Create, overwrite, append, or diff-patch existing memories
+- **Personality Management** — Proactive persistence of tone, mood, specialization, and behavioral rules
+- **Conflict Resolution** — Most-recently-saved preference wins; ambiguous conflicts prompt the user
+- **Security** — Secrets are stripped or masked before saving; path traversal is blocked
+
+**File structure:**
+```
+memory-cube/
+├── SKILL.md
+├── references/
+│   ├── NAMING_AND_FORMAT.md
+│   └── REFERENCE.md
+└── scripts/
+    ├── memorize.py
+    └── memory-content.py
+```
+
+### Port Scanner
+
+A network port scanner and host discovery tool using nmap. Performs reconnaissance, service detection, OS fingerprinting, and vulnerability assessment with structured reporting.
+
+**Capabilities:**
+- **Host Discovery** — Find live hosts on a network with configurable discovery methods
+- **Port Scanning** — TCP, UDP, SCTP, and protocol scanning with multiple profiles (quick, standard, comprehensive, stealth)
+- **Service Detection** — Version identification for running services
+- **OS Fingerprinting** — Remote operating system detection
+- **Firewall Analysis** — Map firewall rules and identify filtered ports
+- **Vulnerability Assessment** — Script-based vulnerability scanning with risk ratings
+- **Stealth Scanning** — Graduated stealth levels (L1-L4) for IDS/firewall evasion
+- **Structured Reporting** — Markdown reports with findings, risk ratings, and remediation guidance
+- **Authorization Gate** — Mandatory authorization confirmation before scanning
+
+**File structure:**
+```
+port-scanner/
+├── SKILL.md
+├── references/
+│   ├── METHODOLOGIES.md
+│   ├── NMAP_REFERENCE.md
+│   ├── OUTPUT_FORMAT.md
+│   └── SCAN_PROFILES.md
+└── scripts/
+    └── parse_nmap_xml.py
+```
+
 ### Wikipedia Deep Research
 
 Conducts comprehensive research on Wikipedia topics with multi-source aggregation and structured output.
@@ -104,6 +157,8 @@ git clone https://github.com/mcaimi/opencode-agents.git ~/opencode-agents
 
 # Symlink each skill into your personal skills directory
 ln -s ~/opencode-agents/git-summary ~/.claude/skills/git-summary
+ln -s ~/opencode-agents/memory-cube ~/.claude/skills/memory-cube
+ln -s ~/opencode-agents/port-scanner ~/.claude/skills/port-scanner
 ln -s ~/opencode-agents/security-auditor ~/.claude/skills/security-auditor
 ln -s ~/opencode-agents/wikipedia ~/.claude/skills/wikipedia
 ```
@@ -119,8 +174,10 @@ ln -s /path/to/opencode-agents/security-auditor .claude/skills/security-auditor
 **Usage:** Skills activate automatically when Claude detects a relevant request, or you can invoke them directly:
 
 ```
-/security-auditor    Run a security audit on the current repository
 /git-summary         Summarize git history
+/memory-cube         Save, recall, or search persistent memories
+/port-scanner        Scan networks and discover services with nmap
+/security-auditor    Run a security audit on the current repository
 /wikipedia           Research a topic on Wikipedia
 ```
 
@@ -143,6 +200,8 @@ git clone https://github.com/mcaimi/opencode-agents.git ~/opencode-agents
 
 # Symlink each skill (using any of the global paths)
 ln -s ~/opencode-agents/git-summary ~/.config/opencode/skills/git-summary
+ln -s ~/opencode-agents/memory-cube ~/.config/opencode/skills/memory-cube
+ln -s ~/opencode-agents/port-scanner ~/.config/opencode/skills/port-scanner
 ln -s ~/opencode-agents/security-auditor ~/.config/opencode/skills/security-auditor
 ln -s ~/opencode-agents/wikipedia ~/.config/opencode/skills/wikipedia
 ```
@@ -197,6 +256,14 @@ opencode-agents/
 ├── git-summary/
 │   ├── SKILL.md
 │   └── references/
+├── memory-cube/
+│   ├── SKILL.md
+│   ├── references/
+│   └── scripts/
+├── port-scanner/
+│   ├── SKILL.md
+│   ├── references/
+│   └── scripts/
 ├── security-auditor/
 │   ├── SKILL.md
 │   ├── references/
