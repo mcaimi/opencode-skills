@@ -145,6 +145,40 @@ rather than silent drop.
 
 ---
 
+## Report Sections
+
+Include the following sections, adjusted based on what was actually scanned (omit OS
+detection section if `-O` was not used, etc.):
+
+1. **Scan Summary**: Target, profile, timestamp, nmap version, scan duration
+2. **Host Discovery**: Hosts up/down, hostnames, MAC addresses
+3. **Port Findings**: Per-host table of open ports, services, versions, CPE identifiers
+4. **Ambiguous States**: Ports in `open|filtered` or `closed|filtered` states with analysis
+5. **OS Detection**: Identified operating systems with confidence, device type, vendor
+6. **Firewall Analysis**: Filtered vs unfiltered ports, stateful/stateless determination
+7. **Network Topology**: Traceroute results, hop counts, network path analysis
+8. **Script Results**: Any script findings with CVE references
+9. **Scan Coverage**: What was scanned (ports, protocols, phases) and what was not
+10. **Risk Assessment**: Severity ratings for findings
+11. **Recommendations**: Actionable remediation steps
+
+---
+
+## Key Patterns to Flag
+
+- Unencrypted protocols where encrypted alternatives exist (HTTP vs HTTPS, Telnet vs SSH, FTP vs SFTP)
+- Database ports exposed to non-private networks (3306, 5432, 27017, 6379)
+- Administrative interfaces exposed (management consoles, debug ports)
+- End-of-life software versions with known CVEs
+- Default or commonly-exploited services (SMB, RDP with weak config)
+- Services running on non-standard ports (possible evasion attempt or misconfiguration)
+- SCTP services on telecom infrastructure (SS7/SIGTRAN exposure)
+- Supported IP protocols beyond TCP/UDP/ICMP on endpoints (unexpected GRE, ESP, etc.)
+- Weak TCP sequence prediction (enables IP spoofing attacks)
+- Missing or misconfigured firewall rules (ports unfiltered that should be filtered)
+
+---
+
 ## Risk Rating Criteria
 
 Apply these ratings consistently across all reports.
