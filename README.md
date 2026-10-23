@@ -110,6 +110,36 @@ port-scanner/
     └── parse_nmap_xml.py
 ```
 
+### Reverse Engineering
+
+Performs static and dynamic binary analysis using radare2 and Frida — from searching a file for strings and signatures to tracing and instrumenting a live process.
+
+**Capabilities:**
+- **Static Search Analysis** — String, byte/hex pattern, regex, wide-string, and numeric-value search via `rafind2`
+- **File Identification & Carving** — Identify unknown file types and extract embedded files
+- **IOC Hunting** — Extract URLs, IPs, and other indicators during malware or CTF triage
+- **Dynamic Process Inspection** — List, spawn, or attach to local Linux/macOS processes with Frida
+- **Function Call Tracing** — Trace API/function calls with `frida-trace`, discover internal functions with `frida-discover`
+- **Code-Flow Reconstruction** — Instruction/basic-block level tracing with Frida's Stalker engine
+- **Memory Inspection** — Read process memory and module/export enumeration via the Frida JavaScript API
+- **Process Control & Patching** — Terminate processes (`frida-kill`) or patch at the Gum level (`gum-graft`), explicit request only
+- **Safety Gates** — Mandatory consent gate before any dynamic spawn/attach, plus dedicated gates for destructive static patching and impactful dynamic operations
+
+**File structure:**
+```
+reverse-engineering/
+├── SKILL.md
+├── references/
+│   ├── RAFIND2_REFERENCE.md
+│   ├── FRIDA_REFERENCE.md
+│   └── FRIDA_JS_API_REFERENCE.md
+└── scripts/
+    ├── call_trace_logger.js
+    ├── stalker_trace.js
+    ├── memory_dump.js
+    └── frida_jsonl_to_md.py
+```
+
 ### Wikipedia Deep Research
 
 Conducts comprehensive research on Wikipedia topics with multi-source aggregation and structured output.
@@ -159,6 +189,7 @@ git clone https://github.com/mcaimi/opencode-agents.git ~/opencode-agents
 ln -s ~/opencode-agents/git-summary ~/.claude/skills/git-summary
 ln -s ~/opencode-agents/memory-cube ~/.claude/skills/memory-cube
 ln -s ~/opencode-agents/port-scanner ~/.claude/skills/port-scanner
+ln -s ~/opencode-agents/reverse-engineering ~/.claude/skills/reverse-engineering
 ln -s ~/opencode-agents/security-auditor ~/.claude/skills/security-auditor
 ln -s ~/opencode-agents/wikipedia ~/.claude/skills/wikipedia
 ```
@@ -177,6 +208,7 @@ ln -s /path/to/opencode-agents/security-auditor .claude/skills/security-auditor
 /git-summary         Summarize git history
 /memory-cube         Save, recall, or search persistent memories
 /port-scanner        Scan networks and discover services with nmap
+/reverse-engineering Analyze a binary statically (radare2) or at runtime (Frida)
 /security-auditor    Run a security audit on the current repository
 /wikipedia           Research a topic on Wikipedia
 ```
@@ -202,6 +234,7 @@ git clone https://github.com/mcaimi/opencode-agents.git ~/opencode-agents
 ln -s ~/opencode-agents/git-summary ~/.config/opencode/skills/git-summary
 ln -s ~/opencode-agents/memory-cube ~/.config/opencode/skills/memory-cube
 ln -s ~/opencode-agents/port-scanner ~/.config/opencode/skills/port-scanner
+ln -s ~/opencode-agents/reverse-engineering ~/.config/opencode/skills/reverse-engineering
 ln -s ~/opencode-agents/security-auditor ~/.config/opencode/skills/security-auditor
 ln -s ~/opencode-agents/wikipedia ~/.config/opencode/skills/wikipedia
 ```
@@ -261,6 +294,10 @@ opencode-agents/
 │   ├── references/
 │   └── scripts/
 ├── port-scanner/
+│   ├── SKILL.md
+│   ├── references/
+│   └── scripts/
+├── reverse-engineering/
 │   ├── SKILL.md
 │   ├── references/
 │   └── scripts/

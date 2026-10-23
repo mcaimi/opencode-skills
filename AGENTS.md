@@ -10,6 +10,7 @@ Collection of AI agent skills following the [Agent Skills](https://agentskills.i
 | Git History Summarizer | `git-summary/` | 1.0.0 | Bash (git) | git |
 | Memory Cube | `memory-cube/` | 1.1.0 | Bash (python3, cat, ls, rm), Read, Write, Edit | python3, patch |
 | Port Scanner | `port-scanner/` | 2.0 | Bash (nmap, sudo, which, grep, awk, sort, xmllint, python3), Read, Write | nmap |
+| Reverse Engineering | `reverse-engineering/` | 2.0.0 | Bash (rafind2, r2, rabin2, file, frida, frida-ps, frida-trace, frida-discover, frida-kill, gum-graft, uv, python3), Read, Write | radare2, frida-tools (via uv), frida-gum (gum-graft, built from source) |
 | Wikipedia Deep Research | `wikipedia/` | 2.0.0 | Bash, WebFetch, WebSearch | network access |
 
 ## Key skill constraints
@@ -49,6 +50,20 @@ Collection of AI agent skills following the [Agent Skills](https://agentskills.i
 - Long scans: use `--stats-every 30s`, `-oA <basename>` for resume support, `--host-timeout 30m`
 - 13 scan profiles from Quick Discovery to Vulnerability Scan (see `references/SCAN_PROFILES.md`)
 
+### Reverse Engineering (`reverse-engineering/`)
+- Static analysis via `rafind2` (strings, byte/hex patterns, regex, wide strings, numeric values, file-type ID, carving) plus dynamic/runtime analysis via Frida (spawn/attach, call tracing, Stalker code-flow tracing, memory inspection)
+- **Treat the analyzed binary as untrusted input (static path)** — never execute it; only read via `rafind2`/`r2`/`rabin2`/`file`
+- **Patch/replace (`rafind2 -R`) safety gate is mandatory** — only on explicit user request, always back up the file first
+- Flag support (`-e`, `-I`, `-V`, `-R`, `-B`) varies by radare2 build — check `rafind2 -h` before relying on them
+- **Dynamic Analysis Consent Gate is mandatory** — always ask explicitly before any Frida spawn/attach, no inferred-consent exception, even for a binary the user just named
+- Suspected-malicious/triage samples should be run in a VM/container/sandbox, not bare host, when using Frida spawn/attach
+- **Destructive/Impactful Dynamic Operations Gate** covers `frida-kill`, `gum-graft`, and behavior-modifying JS hooks — explicit request only, same spirit as `rafind2 -R`
+- `gum-graft` is not installed by `frida-tools` — it requires building `frida-gum` from source (Meson+Ninja); this skill never builds it, only checks it's on `PATH`
+- Python tooling (`frida-tools`) is installed with `uv`, never `pip`
+- macOS SIP/hardened runtime/code signing and Linux `ptrace_scope` can silently block process attach — check Prerequisites before troubleshooting as a bug
+- Dynamic analysis is scoped to local processes only in this phase — no USB/remote device flags
+- See `references/RAFIND2_REFERENCE.md` (static), `references/FRIDA_REFERENCE.md` (CLI tool family), and `references/FRIDA_JS_API_REFERENCE.md` (scripting) for full details
+
 ### Wikipedia Deep Research (`wikipedia/`)
 - **`topic` parameter is mandatory** — agent must stop with error if missing
 - Read-only — never modifies files
@@ -85,6 +100,17 @@ opencode-agents/
 │   │   └── SCAN_PROFILES.md
 │   └── scripts/
 │       └── parse_nmap_xml.py
+├── reverse-engineering/
+│   ├── SKILL.md
+│   ├── references/
+│   │   ├── RAFIND2_REFERENCE.md
+│   │   ├── FRIDA_REFERENCE.md
+│   │   └── FRIDA_JS_API_REFERENCE.md
+│   └── scripts/
+│       ├── call_trace_logger.js
+│       ├── stalker_trace.js
+│       ├── memory_dump.js
+│       └── frida_jsonl_to_md.py
 ├── security-auditor/
 │   ├── SKILL.md
 │   ├── references/
@@ -112,6 +138,7 @@ This repo has no build system, tests, linters, or CI. All content is markdown ex
 - `port-scanner/scripts/parse_nmap_xml.py`
 - `security-auditor/scripts/security_scan.sh`
 - `security-auditor/scripts/entropy_detector.py`
+- `reverse-engineering/scripts/frida_jsonl_to_md.py`
 
 ## Writing new skills
 
@@ -140,6 +167,11 @@ Keep `SKILL.md` under 500 lines. Move detailed reference material to `references
 - **Memory Cube** `-o` filenames must be plain names (no `../` path traversal); secrets must be stripped before saving
 - **Port Scanner** must always confirm authorization before scanning — never skip the authorization gate
 - **Port Scanner** scans requiring root will fail silently or produce incomplete results without `sudo`
+- **Reverse Engineering** must never execute the binary during static analysis — read-only tools (`rafind2`/`r2`/`rabin2`/`file`) only
+- **Reverse Engineering** `rafind2 -R` (patch/replace) is destructive — only run on explicit request, and only after backing up the file
+- **Reverse Engineering** dynamic analysis (Frida) always needs explicit consent before spawn/attach — never infer it, and recommend a sandbox for suspected-malicious samples
+- **Reverse Engineering** `frida-kill`/`gum-graft`/behavior-modifying hooks require explicit request, same as `rafind2 -R`
+- **Reverse Engineering** macOS SIP/hardened runtime and Linux `ptrace_scope` can silently block Frida attach — check Prerequisites before assuming a bug
 - **Security Auditor** will try to run WebSearch for CVE lookups — if it fails, continue with the rest of the report
 - **Wikipedia Deep Research** must validate `topic` presence before any processing
 - **Git History Summarizer** must not attempt file writes
